@@ -1,6 +1,10 @@
 vim.cmd("source ~/.vimrc")
 vim.cmd("packadd packer.nvim")
 
+local SYSNAME = vim.loop.os_uname().sysname == "Windows_NT"
+local WINDOWS = "Windows_NT"
+local LINUX = "Linux"
+
 -- configs
 local cf_surround = function()
 	require("nvim-surround").setup {}
@@ -8,11 +12,9 @@ end
 local cf_autopairs = function()
 	require("nvim-autopairs").setup {}
 end
-
 local cf_comment = function()
 	require("Comment").setup {opleader = {line = "<C-_>"}}
 end
-
 local cf_telescope = function()
 	local builtin = require("telescope.builtin")
 
@@ -122,19 +124,43 @@ local cf_lspzero = function()
 	end)
 
 	local lspc = require("lspconfig")
+	lsp.ensure_installed({
+		"lua_ls", "clangd", "texlab", "matlab_ls"
+	})
 	lspc.lua_ls.setup {lsp.nvim_lua_ls()}
 	lspc.clangd.setup {}
 	lspc.texlab.setup {}
+
+	-- only start the MATLAB langauge server on Windows
+	if (SYSNAME == WINDOWS) then
+		lspc.matlab_ls.setup {
+			capabilities = require("cmp_nvim_lsp").default_capabilities(),
+			single_file_support = true,
+			settings = {
+				matlab = {
+					indexWorkspace = true,
+					installPath = "C:\\Program Files\\MATLAB\\R2022a",
+					matlabConnectionTiming = 'onStart',
+					telemetry = false,
+				},
+			},
+		}
+	end
 
 	lsp.setup()
 
 	-- setup completion
 	local cmp = require("cmp")
 	local cmp_action = require("lsp-zero").cmp_action()
-
 	-- load luasnips
 	local ls = require("luasnip")
-	require("luasnip.loaders.from_lua").lazy_load({paths = "~/.config/nvim/LuaSnip/"})
+	local lsll = require("luasnip.loaders.from_lua")
+
+	if (SYSNAME == WINDOWS) then
+		lsll.lazy_load({paths = "~/AppData/Local/nvim/LuaSnip/"})
+	elseif (SYSNAME == LINUX) then
+		lsll.lazy_load({paths = "~/.config/nvim/LuaSnip/"})
+	end
 
 	ls.config.set_config {
 		enable_autosnippets = true
