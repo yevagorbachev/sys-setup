@@ -15,8 +15,6 @@ echo "\nSetting up shell\n"
 yes | sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 chsh -s /bin/zsh
 stow wsl -t ~ # assuming I'm in the repo
-sed 's/ZSH_THEME=\"[a-z]*\"/ZSH_THEME=\"afowler-custom\"/g' ~/.zshrc -i # set ZSH theme
-echo '. ~/.zsh_aliases' >> ~/.zshrc
 mkdir ~/.projects
 
 read -p "Enter seed for SSH key: " SEED
