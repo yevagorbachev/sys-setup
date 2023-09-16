@@ -10,6 +10,7 @@ sudo apt install $packages -y
 
 # shell
 yes | sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+mkdir ~/.projects
 
 read -p "Enter seed for SSH key: " SEED
 ssh-keygen -t rsa -b 4096 -C SEED
@@ -18,6 +19,4 @@ ssh-add ~/.ssh/id_rsa
 echo "SSH key:"
 cat ~/.ssh/id_rsa.pub
 
-chsh -s /bin/zsh
-stow wsl -t ~
-mkdir ~/.projects
+echo "Execute \"chsh -s /bin/zsh\" to change shell, \"stow wsl -t ~ --no-folding\" to make dotfiles"
