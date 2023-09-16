@@ -29,6 +29,7 @@ let mapleader = "\<Space>"
 nmap <leader>d :Ex<CR>
 nmap <leader><leader> za
 nmap <leader>m :!make<CR>
+nmap <leader>wm :w<CR><leader>m
 nmap <leader>fi <Esc>80A#<Esc>d80|
 " system clipboard commands through leader
 nmap <leader><C-c> "+y

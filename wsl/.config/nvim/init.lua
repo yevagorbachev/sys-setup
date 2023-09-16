@@ -1,9 +1,24 @@
 vim.cmd("source ~/.vimrc")
 vim.cmd("packadd packer.nvim")
 
-local SYSNAME = vim.loop.os_uname().sysname == "Windows_NT"
-local WINDOWS = "Windows_NT"
-local LINUX = "Linux"
+-- Figure out what OS this is on 
+-- SYSNAME = vim.loop.os_uname().sysname
+-- local WINDOWS = "Windows_NT"
+-- local LINUX = "Linux"
+
+SNIPDIR = vim.fn.resolve(vim.fn.stdpath("config") .. "/LuaSnip")
+PACKDIR = vim.fn.resolve(vim.fn.stdpath("data") .. "/site/pack/packer/start/packer.nvim")
+
+-- currently untested
+if not vim.loop.fs_stat(PACKDIR) then
+	print("Installing packer")
+	vim.fn.system {
+		"git", "clone",
+		"--depth", "1",
+		"https://github.com/wbthomason/packer.nvim",
+		PACKDIR
+	}
+end
 
 -- configs
 local cf_surround = function()
@@ -13,7 +28,7 @@ local cf_autopairs = function()
 	require("nvim-autopairs").setup {}
 end
 local cf_comment = function()
-	require("Comment").setup {opleader = {line = "<C-_>"}}
+	require("Comment").setup {toggler = {line = "<C-_>"}}
 end
 local cf_telescope = function()
 	local builtin = require("telescope.builtin")
@@ -114,7 +129,7 @@ local cf_lspzero = function()
 		local opts = {buffer = bufnr, remap = false}
 
 		vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-		vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+		vim.keymap.set("n", "K", vim.lsp.buf.signature_help, opts)
 		vim.keymap.set("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
 		vim.keymap.set("n", "<leader>vd", vim.diagnostic.open_float, opts)
 		vim.keymap.set("n", "<leader>vca", vim.lsp.buf.code_action, opts)
@@ -123,49 +138,18 @@ local cf_lspzero = function()
 		vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
 	end)
 
-	local lspc = require("lspconfig")
-	lsp.ensure_installed({
-		"lua_ls", "clangd", "texlab", "matlab_ls"
-	})
-	lspc.lua_ls.setup {lsp.nvim_lua_ls()}
-	lspc.clangd.setup {}
-	lspc.texlab.setup {}
-
-	-- only start the MATLAB langauge server on Windows
-	if (SYSNAME == WINDOWS) then
-		lspc.matlab_ls.setup {
-			capabilities = require("cmp_nvim_lsp").default_capabilities(),
-			single_file_support = true,
-			settings = {
-				matlab = {
-					indexWorkspace = true,
-					installPath = "C:\\Program Files\\MATLAB\\R2022a",
-					matlabConnectionTiming = 'onStart',
-					telemetry = false,
-				},
-			},
-		}
-	end
-
-	lsp.setup()
-
 	-- setup completion
 	local cmp = require("cmp")
 	local cmp_action = require("lsp-zero").cmp_action()
+
 	-- load luasnips
 	local ls = require("luasnip")
-	local lsll = require("luasnip.loaders.from_lua")
+	require("luasnip.loaders.from_lua").lazy_load({paths = SNIPDIR})
 
-	if (SYSNAME == WINDOWS) then
-		lsll.lazy_load({paths = "~/AppData/Local/nvim/LuaSnip/"})
-	elseif (SYSNAME == LINUX) then
-		lsll.lazy_load({paths = "~/.config/nvim/LuaSnip/"})
-	end
 
 	ls.config.set_config {
 		enable_autosnippets = true
 	}
-
 	cmp.setup {
 		snippet = {
 			expand = function(args)
@@ -210,6 +194,31 @@ local cf_lspzero = function()
 			end
 		end,
 	}
+
+	local lspc = require("lspconfig")
+	lsp.ensure_installed({
+		"lua_ls", "clangd", "texlab", "matlab_ls"
+	})
+
+	local capabilities = require("cmp_nvim_lsp").default_capabilities();
+	lspc.lua_ls.setup {capabilities = capabilities, lsp.nvim_lua_ls()}
+	lspc.clangd.setup {capabilities = capabilities}
+	lspc.texlab.setup {capabilities = capabilities}
+
+	lspc.matlab_ls.setup {
+		capabilities = capabilities,
+		single_file_support = true,
+		settings = {
+			matlab = {
+				indexWorkspace = false,
+				installPath = "C:\\Program Files\\MATLAB\\R2022a",
+				matlabConnectionTiming = 'onStart',
+				telemetry = true,
+			},
+		},
+	}
+	lsp.setup()
+
 end
 
 local cf_tsp = function()
