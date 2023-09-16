@@ -1,0 +1,97 @@
+export WINDOWS="/mnt/c"
+export WINUSER="\"$WINDOWS/Users/Yevgeniy Gorbachev\"" 
+export DOCS="\"$WINUSER/OneDrive - rit.edu/Documents\""
+export PROJECTS=~/.projects
+export EDITOR=/usr/bin/nvim
+export PATH=$PATH:~/.local/share/nvim/mason/bin
+
+# cd $DOCS needs to be eval for some reason
+
+alias python="python3"
+alias pip="pip3"
+alias update=". ~/.zshrc"
+alias nv="nvim"
+alias cyntax="gcc -fsyntax-only"
+
+alias mkae="sl" # funny
+alias maek="sl" # also funny
+alias dor="sl" # also (2) funny
+alias vim="sl" # build the habit nerd
+alias nivm="sl" # also (3) funny (2)
+
+
+function clean-sub { # make clean for immediate subdirectories
+	for dir in */; do
+		make -C $dir clean
+	done
+}
+
+function plotcrop { # crop in-place with no margin
+	pdfcrop -margin 0 $1 $1
+}
+
+function plotcrop-all { # plotcrop all .pdf in cwd
+	for file in *.pdf; do
+		plotcrop $file
+	done
+}
+
+function maketex { # create tex project named $1
+	cp ~/wsl-setup/auxiliary-files/maketex/* .
+	mv texfile.tex $1'.tex'
+	sed 's/{name}/'$1'/g' makefile -i
+}
+
+# use sed -i to change zsh theme
+# might deprecate
+function theme {
+	sed 's/ZSH_THEME=\"[a-z]*\"/ZSH_THEME=\"'$1'\"/g' ~/.zshrc -i
+}
+
+# add project entry
+function project-set {
+        newp=$PROJECTS/$1
+
+        if [[ -f $newp ]];
+        then
+                read -q "reply?Overwrite project \"$1\" [y/n]: "
+                echo # add a newline so it doesn't look weird
+                if [[ $reply != "y" ]]; then
+                        return 0
+                fi
+        fi
+
+        pwd > $newp
+
+}
+
+function project-get {
+	cat $PROJECTS/$1
+}
+
+
+function project {
+        eval cd \"`cat $PROJECTS/$1`\"
+}
+
+function project-list {
+        for file in $PROJECTS/*;
+        do
+                echo "Project \"`basename $file`\": \n\t`cat $file`"
+        done
+}
+
+function project-rm {
+        rm $PROJECTS/$1
+}
+
+function flatten-pdf {
+	tf=$(mktemp)
+	target=${2:-$1}
+	echo "Writing output to $tf..."
+	gs -sDEVICE=pdfwrite -dPDFSETTINGS=/default -dPreserveAnnots=false \
+		-dNOPAUSE -dQUIET -dBATCH -sOutputFile=$tf $1
+	echo "Done"
+	mv $tf $target
+	echo "Moved output to $target"
+}
