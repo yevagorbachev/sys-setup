@@ -2,6 +2,7 @@ export WINDOWS="/mnt/c"
 export WINUSER="\"$WINDOWS/Users/Yevgeniy Gorbachev\"" 
 export DOCS="\"$WINUSER/OneDrive - rit.edu/Documents\""
 export PROJECTS=~/.projects
+export TEMPLATE_NAME="__NAME"
 export EDITOR=/usr/bin/nvim
 export PATH=$PATH:~/.local/share/nvim/mason/bin
 
@@ -19,7 +20,6 @@ alias dor="sl" # also (2) funny
 alias vim="sl" # build the habit nerd
 alias nivm="sl" # also (3) funny (2)
 
-
 function clean-sub { # make clean for immediate subdirectories
 	for dir in */; do
 		make -C $dir clean
@@ -36,53 +36,42 @@ function plotcrop-all { # plotcrop all .pdf in cwd
 	done
 }
 
+function put-template {
+	cp $1/* . -r
+	rename "s/$TEMPLATE_NAME/$1/" *
+	sed -i "s/$TEMPLATE_NAME/$1/g" -i
+}
+
 function maketex { # create tex project named $1
 	cp ~/wsl-setup/auxiliary-files/maketex/* .
 	mv texfile.tex $1'.tex'
 	sed 's/{name}/'$1'/g' makefile -i
 }
 
-# use sed -i to change zsh theme
-# might deprecate
-function theme {
-	sed 's/ZSH_THEME=\"[a-z]*\"/ZSH_THEME=\"'$1'\"/g' ~/.zshrc -i
+function _confirm {
+	read -q "reply?$1 [y/n]: "
+	echo # add a newline so it doesn't look weird
+	if [[ $reply != "y" ]]; then
+		return 1
+	else
+		return 0
+	fi
 }
 
-# add project entry
 function project-set {
-        newp=$PROJECTS/$1
-
-        if [[ -f $newp ]];
-        then
-                read -q "reply?Overwrite project \"$1\" [y/n]: "
-                echo # add a newline so it doesn't look weird
-                if [[ $reply != "y" ]]; then
-                        return 0
-                fi
-        fi
-
-        pwd > $newp
-
+	ln -s -f "$(pwd)" $PROJECTS/$1
 }
-
-function project-get {
-	cat $PROJECTS/$1
-}
-
 
 function project {
-        eval cd \"`cat $PROJECTS/$1`\"
+	cd -P $PROJECTS/$1
 }
 
 function project-list {
-        for file in $PROJECTS/*;
-        do
-                echo "Project \"`basename $file`\": \n\t`cat $file`"
-        done
+	ls -l $PROJECTS | sed -E 's/^.*[0-9]{2}:[0-9]{2} //g'
 }
 
 function project-rm {
-        rm $PROJECTS/$1
+	rm $PROJECTS/$1
 }
 
 function flatten-pdf {
