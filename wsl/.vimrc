@@ -28,7 +28,7 @@ vnoremap K :m '<-2<CR>gv=gv
 let mapleader = "\<Space>"
 nmap <leader>d :Ex<CR>
 nmap <leader><leader> za
-nmap <leader>m :!make<CR>
+nmap <leader>m :<C-P><CR>
 nmap <leader>wm :w<CR><leader>m
 nmap <leader>fi <Esc>80A#<Esc>d80|
 " system clipboard commands through leader

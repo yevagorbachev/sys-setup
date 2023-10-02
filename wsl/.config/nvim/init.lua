@@ -1,15 +1,26 @@
 vim.cmd("source ~/.vimrc")
 vim.cmd("packadd packer.nvim")
 
+-- Helpers
+local resolve = vim.fn.resolve
+local user_cmd = vim.api.nvim_create_user_command
+local vim_edit = vim.cmd.edit
+local stdpath = vim.fn.stdpath
+local keymap = vim.keymap.set
+
 -- Figure out what OS this is on 
 -- SYSNAME = vim.loop.os_uname().sysname
 -- local WINDOWS = "Windows_NT"
 -- local LINUX = "Linux"
 
-SNIPDIR = vim.fn.resolve(vim.fn.stdpath("config") .. "/LuaSnip")
-PACKDIR = vim.fn.resolve(vim.fn.stdpath("data") .. "/site/pack/packer/start/packer.nvim")
+-- Useful globals
+INITFILE = resolve(stdpath("config") .. "/init.lua")
+SNIPDIR = resolve(stdpath("config") .. "/LuaSnip")
+PACKDIR = resolve(stdpath("data") .. "/site/pack/packer/start/packer.nvim")
 
 -- currently untested
+-- Install packer if it isn't already
+-- Hopefully platform-independent with vim.fn.system, but we'll see
 if not vim.loop.fs_stat(PACKDIR) then
 	print("Installing packer")
 	vim.fn.system {
@@ -20,30 +31,36 @@ if not vim.loop.fs_stat(PACKDIR) then
 	}
 end
 
+-- Command-mode command to edit the initfile (like UltiSnipsEdit)
+user_cmd("InitLuaEdit", function() vim_edit(INITFILE) end, {nargs = 0})
+
 -- configs
 local cf_surround = function()
 	require("nvim-surround").setup {}
 end
+
 local cf_autopairs = function()
 	require("nvim-autopairs").setup {}
 end
+
 local cf_comment = function()
-	require("Comment").setup {toggler = {line = "<C-_>"}}
+	require("Comment").setup {toggler = {line = "<C-;>"}}
 end
+
 local cf_telescope = function()
 	local builtin = require("telescope.builtin")
 
-	vim.keymap.set("n", "<leader>sf", builtin.find_files)
+	keymap("n", "<leader>sf", function() builtin.find_files({follow = true}) end)
 end
 
 local cf_harpoon = function()
 	local mark = require("harpoon.mark")
 	local ui = require("harpoon.ui")
 
-	vim.keymap.set("n", "<leader>a", mark.add_file)
-	vim.keymap.set("n", "<leader>h", ui.toggle_quick_menu)
-	vim.keymap.set("n", "<C-j>", ui.nav_next)
-	vim.keymap.set("n", "<C-k>", ui.nav_prev)
+	keymap("n", "<leader>a", mark.add_file)
+	keymap("n", "<leader>h", ui.toggle_quick_menu)
+	keymap("n", "<C-j>", ui.nav_next)
+	keymap("n", "<C-k>", ui.nav_prev)
 end
 
 local cf_treesitter = function()
@@ -74,7 +91,7 @@ local cf_treesitter = function()
 				node_decremental = '<M-space>',
 			},
 		},
-		textobjects = {
+		textobjects = { -- None of these seem to work...
 			select = {
 				enable = true,
 				lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
@@ -128,14 +145,14 @@ local cf_lspzero = function()
 	lsp.on_attach(function(_, bufnr)
 		local opts = {buffer = bufnr, remap = false}
 
-		vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-		vim.keymap.set("n", "K", vim.lsp.buf.signature_help, opts)
-		vim.keymap.set("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
-		vim.keymap.set("n", "<leader>vd", vim.diagnostic.open_float, opts)
-		vim.keymap.set("n", "<leader>vca", vim.lsp.buf.code_action, opts)
-		vim.keymap.set("n", "<leader>vrr", vim.lsp.buf.references, opts)
-		vim.keymap.set("n", "<leader>vrn", vim.lsp.buf.rename, opts)
-		vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
+		keymap("n", "gd", vim.lsp.buf.definition, opts)
+		keymap("n", "K", vim.lsp.buf.signature_help, opts)
+		keymap("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
+		keymap("n", "<leader>vd", vim.diagnostic.open_float, opts)
+		keymap("n", "<leader>vca", vim.lsp.buf.code_action, opts)
+		keymap("n", "<leader>vrr", vim.lsp.buf.references, opts)
+		keymap("n", "<leader>vrn", vim.lsp.buf.rename, opts)
+		keymap("i", "<C-h>", vim.lsp.buf.signature_help, opts)
 	end)
 
 	-- setup completion
@@ -143,13 +160,15 @@ local cf_lspzero = function()
 	local cmp_action = require("lsp-zero").cmp_action()
 
 	-- load luasnips
-	local ls = require("luasnip")
-	require("luasnip.loaders.from_lua").lazy_load({paths = SNIPDIR})
+	require("luasnip.loaders.from_lua").load({paths = SNIPDIR})
 
-
-	ls.config.set_config {
-		enable_autosnippets = true
+	require("luasnip").config.set_config {
+		enable_autosnippets = true,
+		update_events = "TextChanged,TextChangedI"
 	}
+
+	user_cmd("LuaSnipEdit", function() vim_edit(SNIPDIR) end, {nargs = 0})
+
 	cmp.setup {
 		snippet = {
 			expand = function(args)
@@ -158,16 +177,33 @@ local cf_lspzero = function()
 		},
 		mapping = {
 			-- `Enter` key to confirm completion
-			['<CR>'] = cmp.mapping.confirm({select = true}),
-			-- Ctrl+Space to trigger completion menu
-			['<C-Space>'] = cmp.mapping.complete(),
-			-- Navigate between snippet placeholder
-			['<C-f>'] = cmp_action.luasnip_jump_forward(),
-			['<C-b>'] = cmp_action.luasnip_jump_backward(),
 
+			['<Tab>'] = cmp.mapping(function(fallback)
+				local ls = require("luasnip")
+				if ls.expand_or_jumpable() then
+					ls.expand_or_jump()
+				elseif cmp.visible() then
+					local entry = cmp.get_selected_entry()
+					if not entry then
+						cmp.select_next_item({behavior = cmp.SelectBehavior.Select})
+					else
+						cmp.confirm()
+					end
+				else
+					fallback()
+				end
+			end),
+			-- ['<Tab>'] = cmp.mapping.confirm({select = true}),
+			['<CR>'] = cmp.mapping.select_next_item(),
+			['<C-CR>'] = cmp.mapping.select_prev_item(),
+			-- Ctrl+Space to close menu if unwanted
+			['<C-Space>'] = cmp.mapping.close(),
+			-- ['<C-f>'] = cmp_action.luasnip_jump_forward(),
+			-- ['<C-b>'] = cmp_action.luasnip_jump_backward(),
 			-- ['<Tab>'] = cmp_action.tab_complete(),
 			-- ['<S-Tab>'] = cmp_action.select_prev_or_fallback(),
-			['<Tab>'] = cmp_action.luasnip_supertab(),
+			-- Navigate between snippet placeholder
+			-- ['<Tab>'] = cmp_action.luasnip_supertab(),
 			['<S-Tab>'] = cmp_action.luasnip_shift_supertab(),
 		},
 		preselect = "item",
@@ -176,8 +212,8 @@ local cf_lspzero = function()
 		},
 		sources = {
 			{name = "luasnip", keyword_length = 2, priority = 3},
-			{name = "nvim_lsp", keyword_lenghth = 3, priority = 2},
-			{name = "buffer", keyword_length = 3, priority = 1}
+			{name = "nvim_lsp", keyword_lenghth = 3, priority = 2, max_item_count = 2},
+			-- {name = "buffer", keyword_length = 3, priority = 1, max_item_count = 2}
 		},
 		view = {
 			entries = 'custom'
@@ -222,7 +258,7 @@ local cf_lspzero = function()
 end
 
 local cf_tsp = function()
-	vim.keymap.set("n", "<leader>tsn", function() vim.cmd("TSNodeUnderCursor") end)
+	keymap("n", "<leader>tsn", function() vim.cmd("TSNodeUnderCursor") end)
 end
 -- run packer, loading configs
 local packer = require("packer")
