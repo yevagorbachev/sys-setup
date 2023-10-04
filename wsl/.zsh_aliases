@@ -2,7 +2,7 @@ export WINDOWS="/mnt/c"
 export WINUSER="\"$WINDOWS/Users/Yevgeniy Gorbachev\"" 
 export DOCS="\"$WINUSER/OneDrive - rit.edu/Documents\""
 export PROJECTS=~/.projects
-export TEMPLATE_NAME="__NAME"
+export PSETUP=.setup.sh
 export EDITOR=/usr/bin/nvim
 export PATH=$PATH:~/.local/share/nvim/mason/bin
 
@@ -20,6 +20,16 @@ alias dor="sl" # also (2) funny
 alias vim="sl" # build the habit nerd
 alias nivm="sl" # also (3) funny (2)
 
+function _confirm {
+	read -q "reply?$1 [y/n]: "
+	echo # add a newline so it doesn't look weird
+	if [[ $reply != "y" ]]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
 function clean-sub { # make clean for immediate subdirectories
 	for dir in */; do
 		make -C $dir clean
@@ -36,10 +46,47 @@ function plotcrop-all { # plotcrop all .pdf in cwd
 	done
 }
 
-function put-template {
-	cp $1/* . -r
-	rename "s/$TEMPLATE_NAME/$1/" *
-	sed -i "s/$TEMPLATE_NAME/$1/g" -i
+function project-make {
+	dst=.
+	while getopts s:d:n: flag
+	do
+		case "${flag}" in
+			s) src=${OPTARG};;
+			d) dst=${OPTARG};;
+			n) name=${OPTARG};;
+		esac
+	done
+	if [[ -z $src ]]; then
+		echo "Source option -s required"
+		return 1
+	fi
+	if [[ -z $name ]]; then
+		echo "Name option -n required"
+		return 2
+	fi
+
+	# if [ ! -d $dst ] && [ $(_confirm "Create new $dst") ]; then
+	# 	mkdir -p "$dst" -v
+	# fi
+
+	echo "Copying files..."
+	cp $src/* $dst -r -v
+	if [[ -e $src/$PSETUP ]]; then
+		echo "Setup dotfle found"
+		cp $src/$PSETUP $dst -v
+	fi
+	cd $dst
+		
+	if [[ -e $PSETUP ]]; then
+		chmod +x $PSETUP
+		./$PSETUP $name
+		rm $PSETUP
+	else
+		echo "No setup dotfile to run"
+	fi
+	unset -v src # not really sure why I need to do this :((
+	unset -v name # not really sure why I need to do this :((
+	unset -v dst # not really sure why I need to do this :((
 }
 
 function maketex { # create tex project named $1
@@ -48,15 +95,6 @@ function maketex { # create tex project named $1
 	sed 's/{name}/'$1'/g' makefile -i
 }
 
-function _confirm {
-	read -q "reply?$1 [y/n]: "
-	echo # add a newline so it doesn't look weird
-	if [[ $reply != "y" ]]; then
-		return 1
-	else
-		return 0
-	fi
-}
 
 function project-set {
 	ln -s -f "$(pwd)" $PROJECTS/$1
