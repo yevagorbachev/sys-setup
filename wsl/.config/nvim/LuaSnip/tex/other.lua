@@ -14,28 +14,51 @@ local rep = require("luasnip.extras").rep
 local beg_fmt = [[
 \begin{<>}<>
 	<>
-\end{<>}]]
+\end{<>}
+]]
 local beg_snip = s({trig = "begin", dscr = "Invoke environment"},
 	fmta(beg_fmt, {i(1, "environment"), i(2), i(0), rep(1)}))
 
 local fig_fmt = [[
 \begin{figure}[H]
 	\centering
-	\includegraphics[<>]{<>}
+	<>
 	\caption{<>}
 	\label{fig:<>}
 \end{figure}
 ]]
+
 local fig_snip = s("fig", fmta(fig_fmt,
-	{i(1, "dimension"), i(2, "file"), i(3, "caption"), i(4, "label")}))
+		{i(1, "contents"), i(2, "caption"), i(3, "label")}))
+
+local subfig_fmt = [[
+\begin{subfigure}{<>\textwidth}
+	\centering
+	\includegraphics[<>]{<>}
+	\caption{<>}
+	\label{sfig:<>}
+\end{subfigure}
+]]
+
+local subfig_snip = s("sub", fmta(subfig_fmt,
+	{i(1), i(2, "dimension"), i(3, "file"), i(4, "caption"), i(5, "label")}))
 
 
 return {
 	s({trig = "ff",
 		dscr = "Automatic fraction",
 		snippetType = "autosnippet",
-		wordTrig = false},
+		wordTrig = true},
 		fmta("\\frac{<>}{<>}", {i(1), i(2)})),
+	s({trig = "\\9",
+		dscr = "Inline equation",
+		snippetType = "autosnippet",
+		wordTrig = true},
+		fmta("\\(<>\\)", {i(1)})),
+	s({trig = "inc",
+		dscr = "Include graphics"},
+		fmta("\\includegraphics[<>]{<>}", {i(1, "dimension"), i(2, "file")})),
 	fig_snip,
+	subfig_snip,
 	beg_snip
 }

@@ -12,5 +12,5 @@ local rep = require("luasnip.extras").rep
 
 return {
 	s({trig = "uass"}, fmta("<> = <>; % [<>]", {i(1), i(2), i(3)})),
-	s({trig = "ulab"}, fmta("$<>$ [<>]", {i(1), i(2)}))
+	s({trig = "ulab"}, fmta("$<> \\,\\mathrm{[<>]}$", {i(1), i(2)}))
 }
