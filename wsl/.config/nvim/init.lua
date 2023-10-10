@@ -2,11 +2,14 @@ vim.cmd("source ~/.vimrc")
 vim.cmd("packadd packer.nvim")
 
 -- Helpers
-local resolve = vim.fn.resolve
-local user_cmd = vim.api.nvim_create_user_command
-local vim_edit = vim.cmd.edit
-local stdpath = vim.fn.stdpath
-local keymap = vim.keymap.set
+resolve = vim.fn.resolve
+user_cmd = vim.api.nvim_create_user_command
+vim_edit = vim.cmd.edit
+stdpath = vim.fn.stdpath
+keymap = vim.keymap.set
+load_snips = function()
+	require("luasnip.loaders.from_lua").load({paths = SNIPDIR})
+end
 
 -- Figure out what OS this is on 
 -- SYSNAME = vim.loop.os_uname().sysname
@@ -33,6 +36,7 @@ end
 
 -- Command-mode command to edit the initfile (like UltiSnipsEdit)
 user_cmd("InitLuaEdit", function() vim_edit(INITFILE) end, {nargs = 0})
+user_cmd("LuaSnipReload", load_snips, {nargs = 0})
 
 -- configs
 local cf_surround = function()
@@ -160,7 +164,7 @@ local cf_lspzero = function()
 	local cmp_action = require("lsp-zero").cmp_action()
 
 	-- load luasnips
-	require("luasnip.loaders.from_lua").load({paths = SNIPDIR})
+	load_snips()
 
 	require("luasnip").config.set_config {
 		enable_autosnippets = true,
@@ -180,15 +184,15 @@ local cf_lspzero = function()
 
 			['<Tab>'] = cmp.mapping(function(fallback)
 				local ls = require("luasnip")
-				if ls.expand_or_jumpable() then
-					ls.expand_or_jump()
-				elseif cmp.visible() then
+				if cmp.visible() then
 					local entry = cmp.get_selected_entry()
 					if not entry then
 						cmp.select_next_item({behavior = cmp.SelectBehavior.Select})
 					else
 						cmp.confirm()
 					end
+				elseif ls.expand_or_jumpable() then
+					ls.expand_or_jump()
 				else
 					fallback()
 				end
