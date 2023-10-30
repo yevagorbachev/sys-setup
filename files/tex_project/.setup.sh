@@ -1,4 +1,4 @@
 #!/usr/bin/bash
 
 rename "s/__NAME/$1/" *
-sed -i "s/__NAME/$1/g" makefile -i
+sed -i "s/__NAME/$1/g" * 
