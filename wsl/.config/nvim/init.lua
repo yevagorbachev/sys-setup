@@ -63,8 +63,8 @@ local cf_harpoon = function()
 
 	keymap("n", "<leader>a", mark.add_file)
 	keymap("n", "<leader>h", ui.toggle_quick_menu)
-	keymap("n", "<C-j>", ui.nav_next)
-	keymap("n", "<C-k>", ui.nav_prev)
+	keymap("n", "<C-d>", ui.nav_next)
+	keymap("n", "<C-f>", ui.nav_prev)
 end
 
 local cf_treesitter = function()
