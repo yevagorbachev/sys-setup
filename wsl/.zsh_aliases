@@ -90,12 +90,20 @@ function project-make {
 }
 
 function project-set {
-	ln -s -f "$(pwd)" $PROJECTS/$1
+	link=$PROJECTS/$1
+	if [[ -L $link ]]; then
+		project-list | grep $1
+		if [[ $(_confirm "Overwrite?") -eq 0 ]]; then
+			project-rm $1
+		else
+			return 1
+		fi
+	fi
+	ln -s -f "$(pwd)" $link
 }
 
 # send config files to Windows
 function nv-to-win {
-	set -e
 	cp -L ~/.vimrc $PROJECTS/win-home/ -L
 	cp -rL $PROJECTS/nvim/* $PROJECTS/nvim-win/
 }
