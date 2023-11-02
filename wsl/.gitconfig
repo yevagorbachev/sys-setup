@@ -1,9 +1,17 @@
 [user]
 	email = yevgeniy.gorbachev@gmail.com
 	name = yevagorbachev
-[diff]
-	tool = nvim -d
-[difftool]
-	prompt = false
 [core]
 	editor = nvim
+[diff]
+	tool = nvimdiff
+[difftool]
+	prompt = false
+[difftool "vimdiff"]
+	path = nvim
+[merge]
+	tool = nvimdiff
+[mergetool]
+	prompt = false
+[mergetool "vimdiff"]
+	path = nvim
