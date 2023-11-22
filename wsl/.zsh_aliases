@@ -47,13 +47,18 @@ function plotcrop-all { # plotcrop all .pdf in cwd
 }
 
 function project-make {
+	declare src
+	declare dst
+	declare name
+	declare remove_setup
 	dst=.
-	while getopts s:d:n: flag
+	while getopts s:d:n:t flag
 	do
 		case "${flag}" in
 			s) src=${OPTARG};;
 			d) dst=${OPTARG};;
 			n) name=${OPTARG};;
+			t) remove_setup=false;;
 		esac
 	done
 	if [[ -z $src ]]; then
@@ -80,13 +85,16 @@ function project-make {
 	if [[ -e $PSETUP ]]; then
 		chmod +x $PSETUP
 		./$PSETUP $name
-		rm $PSETUP
+		if [[ remove_setup ]]; then
+			rm $PSETUP
+		fi
 	else
 		echo "No setup dotfile to run"
 	fi
-	unset -v src # not really sure why I need to do this :((
-	unset -v name # not really sure why I need to do this :((
-	unset -v dst # not really sure why I need to do this :((
+	# unset -v src # not really sure why I need to do this :((
+	# unset -v name # not really sure why I need to do this :((
+	# unset -v dst # not really sure why I need to do this :((
+	# unset -v remove_setup
 }
 
 function project-set {
