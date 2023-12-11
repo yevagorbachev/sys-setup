@@ -18,18 +18,22 @@ map <S-Tab> <<
 noremap j gj
 noremap k gk
 noremap H g^
-noremap L g$
+noremap L g_
 noremap <C-H> (
 noremap <C-L> )
-nnoremap Y vg$"ly
-nnoremap P vg$"lp
+
+" go-to-end versions 
+nnoremap Y vg_"ly
+nnoremap P vg_"lp
+nnoremap D vg_"ld
+nnoremap C vg_"lc
+
 noremap <C-j> 10jzz
 noremap <C-k> 10kzz
 vnoremap J :m '>+1<CR>gv=gv
 vnoremap K :m '<-2<CR>gv=gv
 
-nnoremap <C-d> :bn<CR>
-nnoremap <C-f> :bp<CR>
+vmap F S)i
 
 let mapleader = "\<Space>"
 noremap <leader>r "

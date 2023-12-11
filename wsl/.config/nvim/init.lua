@@ -44,7 +44,32 @@ local cf_surround = function()
 end
 
 local cf_autopairs = function()
-	require("nvim-autopairs").setup {}
+	local rule = require("nvim-autopairs.rule");
+	local aupairs = require("nvim-autopairs");
+	local files = {"tex", "latex"};
+
+	aupairs.setup {
+		check_ts = true,
+	};
+
+	local inline_eq = rule("\\(", "\\)", files);
+	local aligned_eq = rule("\\[", "\\]", files);
+	local paren = rule("\\left(", "\\right)", files);
+	local brack = rule("\\left[", "\\right]", files);
+	local brace = rule("\\left{", "\\right}", files);
+	local tex_quote = rule("``", "''", files);
+
+	local matlab_inline_eq = rule("$", "$", "m");
+
+	aupairs.add_rules {
+		inline_eq,
+		aligned_eq,
+		paren,
+		brack,
+		brace,
+		tex_quote,
+		matlab_inline_eq
+	};
 end
 
 local cf_comment = function()
