@@ -49,6 +49,13 @@ nmap <leader><C-v> "+p
 
 let g:netrw_bufsettings = "noma nomod nu rnu nobl nowrap ro"
 
+let s:netrw_hide_ext = ["aux", "dvi", "fdb_latexmk", "fls", "log", "toc", "out"] 
+
+let g:netrw_list_hide = ""
+for s in s:netrw_hide_ext
+	let g:netrw_list_hide .= ".*\." . s . ","
+endfor
+
 filetype on
 filetype plugin on
 filetype indent on
