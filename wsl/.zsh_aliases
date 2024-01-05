@@ -21,8 +21,7 @@ alias vim="sl" # build the habit nerd
 alias nivm="sl" # also (3) funny (2)
 
 function _confirm {
-	read -q "reply?$1 [y/n]: "
-	echo # add a newline so it doesn't look weird
+	read -q "reply?$1 [y/n]: "; echo
 	if [[ $reply != "y" ]]; then
 		return 1
 	else
@@ -52,6 +51,7 @@ function project-make {
 	declare name
 	declare remove_setup
 	dst=.
+
 	while getopts s:d:n:t flag
 	do
 		case "${flag}" in
@@ -70,10 +70,6 @@ function project-make {
 		return 2
 	fi
 
-	# if [ ! -d $dst ] && [ $(_confirm "Create new $dst") ]; then
-	# 	mkdir -p "$dst" -v
-	# fi
-
 	echo "Copying files..."
 	cp $src/* $dst -r -v
 	if [[ -e $src/$PSETUP ]]; then
@@ -91,17 +87,13 @@ function project-make {
 	else
 		echo "No setup dotfile to run"
 	fi
-	# unset -v src # not really sure why I need to do this :((
-	# unset -v name # not really sure why I need to do this :((
-	# unset -v dst # not really sure why I need to do this :((
-	# unset -v remove_setup
 }
 
 function project-set {
 	link=$PROJECTS/$1
 	if [[ -L $link ]]; then
-		project-list | grep $1
-		if [[ $(_confirm "Overwrite?") -eq 0 ]]; then
+		project-list | grep "\\b$1\\b"
+		if $(_confirm "Overwrite?"); then
 			project-rm $1
 		else
 			return 1
