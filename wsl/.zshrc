@@ -101,6 +101,8 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 export PATH=$PATH:/usr/src/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi/bin
+export PATH=$PATH:~/.local/bin
+
 
 . ~/.zsh_aliases
 
