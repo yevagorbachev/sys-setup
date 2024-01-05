@@ -35,8 +35,27 @@ if not vim.loop.fs_stat(PACKDIR) then
 end
 
 -- Command-mode command to edit the initfile (like UltiSnipsEdit)
-user_cmd("InitLuaEdit", function() vim_edit(INITFILE) end, {nargs = 0})
-user_cmd("LuaSnipReload", load_snips, {nargs = 0})
+user_cmd("InitLuaEdit", function() vim_edit(INITFILE) end, {nargs = 0});
+user_cmd("LuaSnipReload", load_snips, {nargs = 0});
+user_cmd("SwpDirOpen", function() vim_edit(resolve(stdpath("state") .. "/swap")) end, {nargs = 0});
+
+-- Customized filetype detection
+vim.filetype.add({
+	extension = {
+		overlay = "dts"
+	},
+	pattern = {
+		['README.(%a+)$'] = function(path, bufnr, ext)
+			if ext == 'md' then
+				return 'markdown'
+			elseif ext == 'rst' then
+				return 'rst'
+			end
+		end,
+	}
+});
+
+-- vim.treesitter.language.register("devicetree", "overlay");
 
 -- configs
 local cf_surround = function()
@@ -59,7 +78,7 @@ local cf_autopairs = function()
 	local brace = rule("\\left{", "\\right}", files);
 	local tex_quote = rule("``", "''", files);
 
-	local matlab_inline_eq = rule("$", "$", "m");
+	local matlab_inline_eq = rule("$", "$", "matlab");
 
 	aupairs.add_rules {
 		inline_eq,
@@ -98,7 +117,7 @@ local cf_treesitter = function()
 	tsc.setup {
 		ensure_installed = {
 			"c", "cpp", "matlab", "python", -- proper languages
-			"make", "cmake", "bash", "lua", "luadoc", -- scripting
+			"make", "cmake", "devicetree", "bash", "lua", "luadoc", -- scripting
 			"html", "latex", "bibtex", "markdown_inline", -- text
 			"git_config", "git_rebase", "gitattributes", "gitcommit", "gitignore", -- git
 		},
@@ -165,6 +184,7 @@ local cf_treesitter = function()
 			},
 		}
 	}
+
 end
 
 local cf_lspzero = function()
