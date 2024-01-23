@@ -92,7 +92,7 @@ local cf_autopairs = function()
 end
 
 local cf_comment = function()
-	require("Comment").setup {toggler = {line = "<C-;>"}}
+	require("Comment").setup {};
 end
 
 local cf_telescope = function()
@@ -340,6 +340,7 @@ packer.startup( function(use)
 
 	use {
 		"theprimeagen/harpoon",
+		branch = "harpoon2",
 		requires = {"nvim-lua/plenary.nvim"},
 		config = cf_harpoon
 	}

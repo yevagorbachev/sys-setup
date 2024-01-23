@@ -2,6 +2,7 @@
 colo slate
 syntax on
 hi LineNr ctermfg=grey
+set nohidden
 set nu rnu " set line and relative line numbers
 set incsearch " highlight next result while searching
 set hlsearch " highlight search
