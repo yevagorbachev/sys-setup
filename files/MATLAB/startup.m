@@ -1,5 +1,11 @@
-set(0, 'defaultTextInterpreter', 'latex');
-set(0, 'defaultLegendInterpreter', 'latex');
-set(0, 'defaultAxesTickLabelInterpreter', 'latex');
-set(0, 'defaultFigureWindowStyle', 'docked');
-set(0, 'defaultAxesFontSize', 12);
+set(groot, "DefaultFigureWindowStyle", "docked");
+set(groot, "DefaultAxesFontSize", 14);
+
+list_factory = fieldnames(get(groot,'factory'));
+index_interpreter = find(contains(list_factory,'Interpreter'));
+for i = 1:length(index_interpreter)
+    default_name = strrep(list_factory{index_interpreter(i)},'factory','default');
+    set(groot, default_name, 'latex');
+end
+
+clear;
