@@ -17,7 +17,6 @@ alias cyntax="gcc -fsyntax-only"
 alias mkae="sl" # funny
 alias maek="sl" # also funny
 alias dor="sl" # also (2) funny
-alias vim="sl" # build the habit nerd
 alias nivm="sl" # also (3) funny (2)
 
 function _confirm {
@@ -92,7 +91,7 @@ function project-make {
 function project-set {
 	link=$PROJECTS/$1
 	if [[ -L $link ]]; then
-		project-list | grep "\\b$1\\b"
+		project-list | grep "^$1\\s"
 		if $(_confirm "Overwrite?"); then
 			project-rm $1
 		else
