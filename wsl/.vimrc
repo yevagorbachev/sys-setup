@@ -7,34 +7,45 @@ set nu rnu " set line and relative line numbers
 set incsearch " highlight next result while searching
 set hlsearch " highlight search
 set laststatus=2 " always display statusline
-set scrolloff=10 " leave 10 lines up and down
+set scrolloff=100 " leave 10 lines up and down
 set tabstop=4 " 4 space tabs
 set shiftwidth=4 " 4 space tabs
 set textwidth=80 
-set guifont=Consolas:h11 
+set guifont=Consolas:h12 
 
-" Mappings
 map <Tab> >>
 map <S-Tab> <<
+
+" Movement redesign
 noremap j gj
 noremap k gk
+" shifted versions of HJKL do the same thing but MORE
 noremap H g^
 noremap L g_
+" makes more sense to me than ^ _ 0 $ C-d C-u
+noremap J 10j
+noremap K 10k
 noremap <C-H> (
 noremap <C-L> )
 
 " go-to-end versions 
+" TODO rework to behave less wierd around the end of line
 nnoremap Y vg_"ly
 nnoremap P vg_"lp
 nnoremap D vg_"ld
 nnoremap C vg_"lc
 
-noremap <C-j> 10jzz
-noremap <C-k> 10kzz
+" Line editing
+" J/K got remapped, need new ones
+noremap <C-j> J 
+noremap <C-k> K
+" move the highlighted lines
 vnoremap J :m '>+1<CR>gv=gv
 vnoremap K :m '<-2<CR>gv=gv
 
-vmap F S)i
+" Entering insert mode after surround keybind starts typing
+" shorthand to surround and make function
+vmap <C-f> S)i
 
 let mapleader = "\<Space>"
 noremap <leader>r "
@@ -44,9 +55,11 @@ nnoremap <leader><leader> za
 nnoremap <leader>m :<C-P><CR>
 nnoremap <leader>wm :w<CR><leader>m
 nnoremap <leader>fi <Esc>80A#<Esc>d80|
+nnoremap <leader>s :e ~/scratchpad<CR>
 
-nmap <leader><C-c> "+y
+nmap <leader><C-y> "+y
 nmap <leader><C-v> "+p
+" inoremap <C-v> <C-r>+
 
 let g:netrw_bufsettings = "noma nomod nu rnu nobl nowrap ro"
 
