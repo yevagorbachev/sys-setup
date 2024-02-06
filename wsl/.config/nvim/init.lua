@@ -102,13 +102,15 @@ local cf_telescope = function()
 end
 
 local cf_harpoon = function()
-	local mark = require("harpoon.mark")
-	local ui = require("harpoon.ui")
+	local harpoon = require("harpoon")
 
-	keymap("n", "<leader>a", mark.add_file)
-	keymap("n", "<leader>h", ui.toggle_quick_menu)
-	keymap("n", "<C-d>", ui.nav_next)
-	keymap("n", "<C-f>", ui.nav_prev)
+	harpoon:setup()
+
+	keymap("n", "<leader>a", function() harpoon:list():append() end)
+	keymap("n", "<leader>h", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
+
+	keymap("n", "<C-d>", function() harpoon:list():next() end)
+	keymap("n", "<C-f>", function() harpoon:list():prev() end)
 end
 
 local cf_treesitter = function()
