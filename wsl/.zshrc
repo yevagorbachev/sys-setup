@@ -102,7 +102,7 @@ source $ZSH/oh-my-zsh.sh
 
 export PATH=$PATH:/usr/src/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi/bin
 export PATH=$PATH:~/.local/bin
-
+export ZEPHYR_BASE=~/launch-fsw/zephyr
 
 . ~/.zsh_aliases
 

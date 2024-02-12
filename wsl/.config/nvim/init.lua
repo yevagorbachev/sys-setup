@@ -1,4 +1,3 @@
-vim.cmd("source ~/.vimrc")
 vim.cmd("packadd packer.nvim")
 
 -- Helpers
@@ -78,7 +77,6 @@ local cf_autopairs = function()
 	local brace = rule("\\left{", "\\right}", files);
 	local tex_quote = rule("``", "''", files);
 
-	local matlab_inline_eq = rule("$", "$", "matlab");
 
 	aupairs.add_rules {
 		inline_eq,
@@ -87,7 +85,7 @@ local cf_autopairs = function()
 		brack,
 		brace,
 		tex_quote,
-		matlab_inline_eq
+		rule("$", "$", {"matlab", "markdown"}),
 	};
 end
 
@@ -197,7 +195,7 @@ local cf_lspzero = function()
 		local opts = {buffer = bufnr, remap = false}
 
 		keymap("n", "gd", vim.lsp.buf.definition, opts)
-		keymap("n", "K", vim.lsp.buf.signature_help, opts)
+		keymap("n", "<C-k>", vim.lsp.buf.signature_help, opts)
 		keymap("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
 		keymap("n", "<leader>vd", vim.diagnostic.open_float, opts)
 		keymap("n", "<leader>vca", vim.lsp.buf.code_action, opts)
@@ -219,7 +217,6 @@ local cf_lspzero = function()
 	}
 
 	user_cmd("LuaSnipEdit", function() vim_edit(SNIPDIR) end, {nargs = 0})
-
 	cmp.setup {
 		snippet = {
 			expand = function(args)
@@ -229,7 +226,7 @@ local cf_lspzero = function()
 		mapping = {
 			-- `Enter` key to confirm completion
 
-			['<Tab>'] = cmp.mapping(function(fallback)
+			--[[ ['<CR>'] = cmp.mapping(function(fallback)
 				local ls = require("luasnip")
 				if cmp.visible() then
 					local entry = cmp.get_selected_entry()
@@ -243,10 +240,10 @@ local cf_lspzero = function()
 				else
 					fallback()
 				end
-			end),
-			-- ['<Tab>'] = cmp.mapping.confirm({select = true}),
-			['<CR>'] = cmp.mapping.select_next_item(),
-			['<C-CR>'] = cmp.mapping.select_prev_item(),
+			end), ]]
+			['<CR>'] = cmp.mapping.confirm({select = true}),
+			['<Tab>'] = cmp.mapping.select_next_item(),
+			['<S-Tab>'] = cmp.mapping.select_prev_item(),
 			-- Ctrl+Space to close menu if unwanted
 			['<C-Space>'] = cmp.mapping.close(),
 			-- ['<C-f>'] = cmp_action.luasnip_jump_forward(),
@@ -254,7 +251,7 @@ local cf_lspzero = function()
 			-- ['<Tab>'] = cmp_action.tab_complete(),
 			-- ['<S-Tab>'] = cmp_action.select_prev_or_fallback(),
 			-- Navigate between snippet placeholder
-			-- ['<Tab>'] = cmp_action.luasnip_supertab(),
+			['<Tab>'] = cmp_action.luasnip_supertab(),
 			['<S-Tab>'] = cmp_action.luasnip_shift_supertab(),
 		},
 		preselect = "item",
@@ -390,3 +387,5 @@ packer.startup( function(use)
 	}
 end)
 
+
+vim.cmd("source ~/.vimrc")
