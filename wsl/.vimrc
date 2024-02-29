@@ -40,8 +40,8 @@ nnoremap C vg_"lc
 noremap <C-j> J 
 noremap <C-k> K
 " move the highlighted lines
-vnoremap J :m '>+1<CR>gv=gv
-vnoremap K :m '<-2<CR>gv=gv
+vnoremap <C-j> :m '>+1<CR>gv=gv
+vnoremap <C-k> :m '<-2<CR>gv=gv
 
 " Entering insert mode after surround keybind starts typing
 " shorthand to surround and make function
@@ -52,14 +52,11 @@ noremap <leader>r "
 nnoremap <leader>p "_dp
 nnoremap <leader>d :Ex<CR>
 nnoremap <leader><leader> za
-nnoremap <leader>m :<C-P><CR>
-nnoremap <leader>wm :w<CR><leader>m
 nnoremap <leader>fi <Esc>80A#<Esc>d80|
 nnoremap <leader>s :e ~/scratchpad<CR>
 
-nmap <leader><C-y> "+y
-nmap <leader><C-v> "+p
-" inoremap <C-v> <C-r>+
+vnoremap <leader>sy "+y
+vnoremap <leader>sp "+P
 
 let g:netrw_bufsettings = "noma nomod nu rnu nobl nowrap ro"
 

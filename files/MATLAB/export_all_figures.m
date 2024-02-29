@@ -1,8 +1,9 @@
+% usage: export_all_figures(name_fmt, ...)
+%   name_fmt: %1$d for number, %2$s for name
+%   NOTE: must have extension
+%   ... : passed to exportgraphics(h, filename, ...)
+% 	defaults to {"BackgroundColor", "none", "ContentType", "vector"} if empty
 function export_all_figures(name_fmt, varargin)
-    % usage: export_all_figures(name_fmt, ...)
-	% name_fmt: %1$d for number, %2$s for name -- must have extension
-	% ... : passed to exportgraphics(h, filename, ...)
-	% 	defaults to {"BackgroundColor", "none", "ContentType", "vector"} if empty
 
     % sort the array of figures by number
     handles = findobj("type", "figure")';

@@ -118,7 +118,7 @@ local cf_treesitter = function()
 		ensure_installed = {
 			"c", "cpp", "matlab", "python", -- proper languages
 			"make", "cmake", "devicetree", "bash", "lua", "luadoc", -- scripting
-			"html", "latex", "bibtex", "markdown_inline", -- text
+			"html", "latex", "bibtex", "markdown", -- text
 			"git_config", "git_rebase", "gitattributes", "gitcommit", "gitignore", -- git
 		},
 		sync_install = true,
