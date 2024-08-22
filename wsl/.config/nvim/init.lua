@@ -1,24 +1,19 @@
 vim.cmd("packadd packer.nvim")
 
 -- Helpers
-resolve = vim.fn.resolve
-user_cmd = vim.api.nvim_create_user_command
-vim_edit = vim.cmd.edit
-stdpath = vim.fn.stdpath
-keymap = vim.keymap.set
 load_snips = function()
 	require("luasnip.loaders.from_lua").load({paths = SNIPDIR})
 end
 
 -- Figure out what OS this is on 
--- SYSNAME = vim.loop.os_uname().sysname
--- local WINDOWS = "Windows_NT"
--- local LINUX = "Linux"
+SYSNAME = vim.loop.os_uname().sysname
+SYSNAME_WINDOWS = "Windows_NT"
+SYSNAME_LINUX = "Linux"
 
 -- Useful globals
-INITFILE = resolve(stdpath("config") .. "/init.lua")
-SNIPDIR = resolve(stdpath("config") .. "/LuaSnip")
-PACKDIR = resolve(stdpath("data") .. "/site/pack/packer/start/packer.nvim")
+INITFILE = vim.fn.resolve(vim.fn.stdpath("config") .. "/init.lua")
+SNIPDIR = vim.fn.resolve(vim.fn.stdpath("config") .. "/LuaSnip")
+PACKDIR = vim.fn.resolve(vim.fn.stdpath("data") .. "/site/pack/packer/start/packer.nvim")
 
 -- currently untested
 -- Install packer if it isn't already
@@ -34,9 +29,17 @@ if not vim.loop.fs_stat(PACKDIR) then
 end
 
 -- Command-mode command to edit the initfile (like UltiSnipsEdit)
-user_cmd("InitLuaEdit", function() vim_edit(INITFILE) end, {nargs = 0});
-user_cmd("LuaSnipReload", load_snips, {nargs = 0});
-user_cmd("SwpDirOpen", function() vim_edit(resolve(stdpath("state") .. "/swap")) end, {nargs = 0});
+vim.api.nvim_create_user_command("InitLuaEdit", function() 
+	vim.cmd.edit(INITFILE) 
+end, {nargs = 0});
+vim.api.nvim_create_user_command("LuaSnipReload", 
+	load_snips, {nargs = 0});
+vim.api.nvim_create_user_command("SwpDirOpen", function() 
+	vim.cmd.edit(vim.fn.resolve(vim.fn.stdpath("state") .. "/swap")) 
+end, {nargs = 0});
+vim.api.nvim_create_user_command("LspLogOpen", function ()
+	vim.cmd.edit(vim.fn.resolve(vim.fn.stdpath("state") .. "/lsp.log"))
+end, {nargs = 0})
 
 -- Customized filetype detection
 vim.filetype.add({
@@ -96,7 +99,7 @@ end
 local cf_telescope = function()
 	local builtin = require("telescope.builtin")
 
-	keymap("n", "<leader>sf", function() builtin.find_files({follow = true}) end)
+	vim.keymap.set("n", "<leader>sf", function() builtin.find_files({follow = true}) end)
 end
 
 local cf_harpoon = function()
@@ -104,11 +107,11 @@ local cf_harpoon = function()
 
 	harpoon:setup()
 
-	keymap("n", "<leader>a", function() harpoon:list():append() end)
-	keymap("n", "<leader>h", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
+	vim.keymap.set("n", "<leader>a", function() harpoon:list():add() end)
+	vim.keymap.set("n", "<leader>h", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
 
-	keymap("n", "<C-d>", function() harpoon:list():next() end)
-	keymap("n", "<C-f>", function() harpoon:list():prev() end)
+	vim.keymap.set("n", "<C-d>", function() harpoon:list():next() end)
+	vim.keymap.set("n", "<C-f>", function() harpoon:list():prev() end)
 end
 
 local cf_treesitter = function()
@@ -194,14 +197,15 @@ local cf_lspzero = function()
 	lsp.on_attach(function(_, bufnr)
 		local opts = {buffer = bufnr, remap = false}
 
-		keymap("n", "gd", vim.lsp.buf.definition, opts)
-		keymap("n", "<C-k>", vim.lsp.buf.signature_help, opts)
-		keymap("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
-		keymap("n", "<leader>vd", vim.diagnostic.open_float, opts)
-		keymap("n", "<leader>vca", vim.lsp.buf.code_action, opts)
-		keymap("n", "<leader>vrr", vim.lsp.buf.references, opts)
-		keymap("n", "<leader>vrn", vim.lsp.buf.rename, opts)
-		keymap("i", "<C-h>", vim.lsp.buf.signature_help, opts)
+		vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+		vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts)
+		vim.keymap.set("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
+		vim.keymap.set("n", "<leader>vd", vim.diagnostic.open_float, opts)
+		vim.keymap.set("n", "<leader>vca", vim.lsp.buf.code_action, opts)
+		vim.keymap.set("n", "<leader>vrr", vim.lsp.buf.references, opts)
+		vim.keymap.set("n", "<leader>vrn", vim.lsp.buf.rename, opts)
+		vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
+		
 	end)
 
 	-- setup completion
@@ -216,7 +220,7 @@ local cf_lspzero = function()
 		update_events = "TextChanged,TextChangedI"
 	}
 
-	user_cmd("LuaSnipEdit", function() vim_edit(SNIPDIR) end, {nargs = 0})
+	vim.api.nvim_create_user_command("LuaSnipEdit", function() vim.cmd.edit(SNIPDIR) end, {nargs = 0})
 	cmp.setup {
 		snippet = {
 			expand = function(args)
@@ -281,33 +285,40 @@ local cf_lspzero = function()
 
 	local lspc = require("lspconfig")
 	lsp.ensure_installed({
-		"lua_ls", "clangd", "texlab", "matlab_ls"
+		"lua_ls", "clangd", "texlab"
 	})
 
 	local capabilities = require("cmp_nvim_lsp").default_capabilities();
 	lspc.lua_ls.setup {capabilities = capabilities, lsp.nvim_lua_ls()}
-	lspc.clangd.setup {capabilities = capabilities}
-	lspc.texlab.setup {capabilities = capabilities}
+	if SYSNAME_LINUX == SYSNAME then
+		lspc.clangd.setup {capabilities = capabilities}
+		lspc.texlab.setup {capabilities = capabilities}
+		lspc.arduino_language_server.setup {}
+	end
 
-	lspc.matlab_ls.setup {
-		capabilities = capabilities,
-		single_file_support = true,
-		settings = {
-			matlab = {
-				indexWorkspace = false,
-				installPath = "C:\\Program Files\\MATLAB\\R2022a",
-				matlabConnectionTiming = 'onStart',
-				telemetry = true,
+	if SYSNAME_WINDOWS == SYSNAME then
+		lspc.matlab_ls.setup {
+			capabilities = capabilities,
+			single_file_support = true,
+			settings = {
+				matlab = {
+					indexWorkspace = false,
+					installPath = "C:\\Program Files\\MATLAB\\R2022a",
+					matlabConnectionTiming = 'onStart',
+					telemetry = true,
+				},
 			},
-		},
-	}
+		}
+	end
+
 	lsp.setup()
 
 end
 
 local cf_tsp = function()
-	keymap("n", "<leader>tsn", function() vim.cmd("TSNodeUnderCursor") end)
+	vim.keymap.set("n", "<leader>tsn", function() vim.cmd("TSNodeUnderCursor") end)
 end
+
 -- run packer, loading configs
 local packer = require("packer")
 packer.startup( function(use)
