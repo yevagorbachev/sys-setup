@@ -68,6 +68,9 @@ function project-make {
 		echo "Name option -n required"
 		return 2
 	fi
+	if ! [[ -e $dst ]]; then
+		mkdir -p $dst
+	fi
 
 	echo "Copying files..."
 	cp $src/* $dst -r -v
@@ -128,4 +131,9 @@ function flatten-pdf {
 	echo "Done"
 	mv $tf $target
 	echo "Moved output to $target"
+}
+
+function fix-serial {
+	sudo chown root:dialout /dev/ttyACM0
+	sudo chmod 660 /dev/ttyACM0
 }
