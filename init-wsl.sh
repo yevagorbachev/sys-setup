@@ -18,5 +18,3 @@ eval $(ssh-agent -s)
 ssh-add ~/.ssh/id_rsa
 echo "SSH key:"
 cat ~/.ssh/id_rsa.pub
-
-echo "Execute \"chsh -s /bin/zsh\" to change shell, \"stow wsl -t ~ --no-folding\" to make dotfiles"
