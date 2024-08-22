@@ -378,5 +378,5 @@ packer.startup( function(use)
 	}
 end)
 
-
+vim.opt.runtimepath:append("~/.vim")
 vim.cmd("source ~/.vimrc")
