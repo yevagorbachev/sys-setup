@@ -135,7 +135,7 @@ local cf_treesitter = function()
 		indent = { enable = true },
 		incremental_selection = {
 			enable = true,
-			keymaps = {
+			keymap = {
 				init_selection = '<c-space>',
 				node_incremental = '<c-space>',
 				scope_incremental = '<c-s>',
@@ -146,7 +146,7 @@ local cf_treesitter = function()
 			select = {
 				enable = true,
 				lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
-				keymaps = {
+				keymap = {
 					-- You can use the capture groups defined in textobjects.scm
 					['aa'] = '@parameter.outer',
 					['ia'] = '@parameter.inner',
@@ -228,35 +228,11 @@ local cf_lspzero = function()
 			end
 		},
 		mapping = {
-			-- `Enter` key to confirm completion
-
-			--[[ ['<CR>'] = cmp.mapping(function(fallback)
-				local ls = require("luasnip")
-				if cmp.visible() then
-					local entry = cmp.get_selected_entry()
-					if not entry then
-						cmp.select_next_item({behavior = cmp.SelectBehavior.Select})
-					else
-						cmp.confirm()
-					end
-				elseif ls.expand_or_jumpable() then
-					ls.expand_or_jump()
-				else
-					fallback()
-				end
-			end), ]]
-			['<CR>'] = cmp.mapping.confirm({select = true}),
-			['<Tab>'] = cmp.mapping.select_next_item(),
-			['<S-Tab>'] = cmp.mapping.select_prev_item(),
-			-- Ctrl+Space to close menu if unwanted
-			['<C-Space>'] = cmp.mapping.close(),
-			-- ['<C-f>'] = cmp_action.luasnip_jump_forward(),
-			-- ['<C-b>'] = cmp_action.luasnip_jump_backward(),
-			-- ['<Tab>'] = cmp_action.tab_complete(),
-			-- ['<S-Tab>'] = cmp_action.select_prev_or_fallback(),
-			-- Navigate between snippet placeholder
-			['<Tab>'] = cmp_action.luasnip_supertab(),
-			['<S-Tab>'] = cmp_action.luasnip_shift_supertab(),
+			['<C-Space>'] = cmp.mapping.confirm({select = true}),
+			['<C-n>'] = cmp.mapping.select_next_item(),
+			['<C-p>'] = cmp.mapping.select_prev_item(),
+			['<Tab>'] = cmp_action.luasnip_jump_forward(),
+			['<S-Tab>'] = cmp_action.luasnip_jump_backward(),
 		},
 		preselect = "item",
 		completion = {
@@ -264,7 +240,8 @@ local cf_lspzero = function()
 		},
 		sources = {
 			{name = "luasnip", keyword_length = 2, priority = 3},
-			{name = "nvim_lsp", keyword_lenghth = 3, priority = 2, max_item_count = 2},
+			{name = "nvim_lsp", keyword_length = 3, priority = 2, max_item_count = 5},
+			{name = "path", keyword_length = 3, priority = 2, max_item_count = 4},
 			-- {name = "buffer", keyword_length = 3, priority = 1, max_item_count = 2}
 		},
 		view = {
@@ -383,18 +360,21 @@ packer.startup( function(use)
 			{"neovim/nvim-lspconfig"},
 			{"williamboman/mason.nvim"},
 			{"williamboman/mason-lspconfig.nvim"},
+			--{"glebzlat/arduino-nvim"},
 
 			-- Autocompletion
 			{"L3MON4D3/LuaSnip"},
 			{"saadparwaiz1/cmp_luasnip"},
 			{"hrsh7th/nvim-cmp"},
 			{"hrsh7th/cmp-buffer"},
+			{"hrsh7th/cmp-path"},
 			{"hrsh7th/cmp-nvim-lsp"},
 		},
 		config = cf_lspzero
 	}
+
 	use {
-		"hrsh7th/cmp-nvim-lsp",
+		"folke/neodev.nvim"
 	}
 end)
 
