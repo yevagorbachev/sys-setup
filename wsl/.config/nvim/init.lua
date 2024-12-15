@@ -1,5 +1,3 @@
-vim.cmd("packadd packer.nvim")
-
 -- Helpers
 load_snips = function()
 	require("luasnip.loaders.from_lua").load({paths = SNIPDIR})
@@ -27,6 +25,10 @@ if not vim.loop.fs_stat(PACKDIR) then
 		PACKDIR
 	}
 end
+
+
+
+vim.cmd("packadd packer.nvim")
 
 -- Command-mode command to edit the initfile (like UltiSnipsEdit)
 vim.api.nvim_create_user_command("InitLuaEdit", function() 
@@ -260,13 +262,19 @@ local cf_lspzero = function()
 		end,
 	}
 
+    require("neodev").setup {}
+
 	local lspc = require("lspconfig")
 	lsp.ensure_installed({
 		"lua_ls", "clangd", "texlab"
 	})
 
 	local capabilities = require("cmp_nvim_lsp").default_capabilities();
-	lspc.lua_ls.setup {capabilities = capabilities, lsp.nvim_lua_ls()}
+
+	lspc.lua_ls.setup {
+        capabilities = capabilities,
+        lsp.nvim_lua_ls(),
+    }
 	if SYSNAME_LINUX == SYSNAME then
 		lspc.clangd.setup {capabilities = capabilities}
 		lspc.texlab.setup {capabilities = capabilities}
@@ -279,8 +287,8 @@ local cf_lspzero = function()
 			single_file_support = true,
 			settings = {
 				matlab = {
-					indexWorkspace = false,
-					installPath = "C:\\Program Files\\MATLAB\\R2022a",
+					indexWorkspace = true,
+					installPath = "C:/Program Files/MATLAB/R2024b",
 					matlabConnectionTiming = 'onStart',
 					telemetry = true,
 				},
@@ -376,6 +384,10 @@ packer.startup( function(use)
 	use {
 		"folke/neodev.nvim"
 	}
+
+    use {
+        "theprimeagen/vim-be-good"
+    }
 end)
 
 vim.opt.runtimepath:append("~/.vim")
