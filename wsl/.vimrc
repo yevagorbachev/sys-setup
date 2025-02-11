@@ -70,14 +70,12 @@ filetype plugin on
 filetype indent on
 syntax on
 
-au BufNewFile,BufRead *.m set expandtab
-au BufNewFile,BufRead *.m set tw=0
-
 packadd! matchit
 
-augroup vimrc_todo
+augroup todo
     au!
     au Syntax * syn match MyTodo /\v<(FIXME|NOTE|TODO|XXX):?/
           \ containedin=.*Comment,vimCommentTitle
 augroup END
+
 hi def link MyTodo Todo
