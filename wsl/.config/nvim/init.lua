@@ -390,5 +390,13 @@ packer.startup( function(use)
     }
 end)
 
-vim.opt.runtimepath:append("~/.vim")
+
+if SYSNAME_LINUX == SYSNAME then
+    vim.opt.runtimepath:append("~/.vim")
+end
+
+if SYSNAME_WINDOWS == SYSNAME then
+    vim.opt.runtimepath:append("~/vimfiles")
+end
+
 vim.cmd("source ~/.vimrc")
