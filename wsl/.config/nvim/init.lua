@@ -1,133 +1,59 @@
--- Helpers
-load_snips = function()
-	require("luasnip.loaders.from_lua").load({paths = SNIPDIR})
-end
-
 -- Figure out what OS this is on 
-SYSNAME = vim.loop.os_uname().sysname
-SYSNAME_WINDOWS = "Windows_NT"
-SYSNAME_LINUX = "Linux"
-
--- Useful globals
-INITFILE = vim.fn.resolve(vim.fn.stdpath("config") .. "/init.lua")
-SNIPDIR = vim.fn.resolve(vim.fn.stdpath("config") .. "/LuaSnip")
-PACKDIR = vim.fn.resolve(vim.fn.stdpath("data") .. "/site/pack/packer/start/packer.nvim")
+local system_lookup = {Windows_NT = "windows", Linux = "linux"}
+SYSNAME = system_lookup[vim.loop.os_uname().sysname];
+-- turn returned values into either "windows" or "linux" for convenience
 
 -- currently untested
 -- Install packer if it isn't already
 -- Hopefully platform-independent with vim.fn.system, but we'll see
-if not vim.loop.fs_stat(PACKDIR) then
+local packdir = vim.fn.resolve(vim.fn.stdpath("data") .. "/site/pack/packer/start/packer.nvim")
+if not vim.loop.fs_stat(packdir) then
 	print("Installing packer")
 	vim.fn.system {
 		"git", "clone",
 		"--depth", "1",
 		"https://github.com/wbthomason/packer.nvim",
-		PACKDIR
+		packdir
 	}
 end
 
-
-
 vim.cmd("packadd packer.nvim")
-
--- Command-mode command to edit the initfile (like UltiSnipsEdit)
-vim.api.nvim_create_user_command("InitLuaEdit", function() 
-	vim.cmd.edit(INITFILE) 
-end, {nargs = 0});
-vim.api.nvim_create_user_command("LuaSnipReload", 
-	load_snips, {nargs = 0});
-vim.api.nvim_create_user_command("SwpDirOpen", function() 
-	vim.cmd.edit(vim.fn.resolve(vim.fn.stdpath("state") .. "/swap")) 
-end, {nargs = 0});
-vim.api.nvim_create_user_command("LspLogOpen", function ()
-	vim.cmd.edit(vim.fn.resolve(vim.fn.stdpath("state") .. "/lsp.log"))
-end, {nargs = 0})
-
--- Customized filetype detection
-vim.filetype.add({
-	extension = {
-		overlay = "dts"
-	},
-	pattern = {
-		['README.(%a+)$'] = function(path, bufnr, ext)
-			if ext == 'md' then
-				return 'markdown'
-			elseif ext == 'rst' then
-				return 'rst'
-			end
-		end,
-	}
-});
-
--- vim.treesitter.language.register("devicetree", "overlay");
 
 -- configs
 local cf_surround = function()
-	require("nvim-surround").setup {}
+	require("nvim-surround").setup({});
 end
 
 local cf_autopairs = function()
 	local rule = require("nvim-autopairs.rule");
 	local aupairs = require("nvim-autopairs");
-	local files = {"tex", "latex"};
+	local texs = {"tex", "latex"};
 
 	aupairs.setup {
 		check_ts = true,
 	};
 
-	local inline_eq = rule("\\(", "\\)", files);
-	local aligned_eq = rule("\\[", "\\]", files);
-	local paren = rule("\\left(", "\\right)", files);
-	local brack = rule("\\left[", "\\right]", files);
-	local brace = rule("\\left{", "\\right}", files);
-	local tex_quote = rule("``", "''", files);
-
-
 	aupairs.add_rules {
-		inline_eq,
-		aligned_eq,
-		paren,
-		brack,
-		brace,
-		tex_quote,
+		rule("\\(", "\\)", texs),
+		rule("\\left(", "\\right)", texs),
+		rule("\\left[", "\\right]", texs),
+		rule("\\left{", "\\right}", texs),
+		rule("`", "'", texs),
+		rule("``", "''", texs),
 		rule("$", "$", {"matlab", "markdown"}),
 	};
 end
 
 local cf_comment = function()
-	require("Comment").setup {};
-end
-
-local cf_telescope = function()
-	local builtin = require("telescope.builtin")
-
-	vim.keymap.set("n", "<leader>sf", function() builtin.find_files({follow = true}) end)
-end
-
-local cf_harpoon = function()
-	local harpoon = require("harpoon")
-
-	harpoon:setup()
-
-	vim.keymap.set("n", "<leader>a", function() harpoon:list():add() end)
-	vim.keymap.set("n", "<leader>h", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
-
-	vim.keymap.set("n", "<C-d>", function() harpoon:list():next() end)
-	vim.keymap.set("n", "<C-f>", function() harpoon:list():prev() end)
+	require("Comment").setup({});
 end
 
 local cf_treesitter = function()
 	local tsc = require("nvim-treesitter.configs")
 
 	tsc.setup {
-		ensure_installed = {
-			"c", "cpp", "matlab", "python", -- proper languages
-			"make", "cmake", "devicetree", "bash", "lua", "luadoc", -- scripting
-			"html", "latex", "bibtex", "markdown", -- text
-			"git_config", "git_rebase", "gitattributes", "gitcommit", "gitignore", -- git
-		},
-		sync_install = true,
-		auto_install = true,
+		sync_install = false,
+		auto_install = false,
 		ignore_install = {},
 		highlight = {
 			enable = true,
@@ -192,121 +118,84 @@ local cf_treesitter = function()
 
 end
 
-local cf_lspzero = function()
-	-- setup and configure lsp-zero
-	local lsp = require("lsp-zero").preset {}
+local cf_luasnip = function()
+	local snipdir = vim.fn.resolve(vim.fn.stdpath("config") .. "/LuaSnip")
+	require("luasnip.loaders.from_lua").load({paths = snipdir})
+end
 
-	lsp.on_attach(function(_, bufnr)
-		local opts = {buffer = bufnr, remap = false}
+matlab_root_dir = function(bufnr)
+    local matcher = function(name, path)
+        return name:match(".*%.prj") or (name == ".git");
+    end
+    return vim.fs.root(bufnr, matcher)
+end
+local cf_lspconfig = function()
+    if SYSNAME == "linux" then
+        vim.lsp.enable("lua-language-server");
+        vim.lsp.enable("clangd");
+        vim.lsp.enable("texlab");
+    end
+    if SYSNAME == "windows" then
+        vim.lsp.config("matlab-language-server", {
+			cmd = {"matlab-language-server", "--stdio"},
+			filetypes = {'matlab'},
+            single_file_support = true,
+            root_dir = function(bufnr, on_dir)
+                local matcher = function(name, path)
+                    return (name:match("%.prj$") ~= nil) or (name == ".git");
+                end
 
-		vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-		vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts)
-		vim.keymap.set("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
-		vim.keymap.set("n", "<leader>vd", vim.diagnostic.open_float, opts)
-		vim.keymap.set("n", "<leader>vca", vim.lsp.buf.code_action, opts)
-		vim.keymap.set("n", "<leader>vrr", vim.lsp.buf.references, opts)
-		vim.keymap.set("n", "<leader>vrn", vim.lsp.buf.rename, opts)
-		vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
-		
-	end)
+                on_dir(vim.fs.root(bufnr, matcher));
+            end,
+            settings = {
+                MATLAB = {
+                    indexWorkspace = true,
+                    -- installPath = "\"C:/Program Files/MATLAB/R2024b\"",
+                    installPath = "C:/Program\\ Files/MATLAB/R2024b",
+                    matlabConnectionTiming = "onStart",
+                    telemetry = true,
+                }
+            }
+        });
+        vim.lsp.enable("matlab-language-server");
+    end
+end
 
-	-- setup completion
-	local cmp = require("cmp")
-	local cmp_action = require("lsp-zero").cmp_action()
-
-	-- load luasnips
-	load_snips()
-
-	require("luasnip").config.set_config {
-		enable_autosnippets = true,
-		update_events = "TextChanged,TextChangedI"
-	}
-
-	vim.api.nvim_create_user_command("LuaSnipEdit", function() vim.cmd.edit(SNIPDIR) end, {nargs = 0})
-	cmp.setup {
+local cf_cmp = function()
+	cmp = require("cmp");
+	cmp.setup({
+		mapping = cmp.mapping.preset.insert({
+			["<C-p>"] = cmp.mapping.scroll_docs(-4),
+			["<C-n>"] = cmp.mapping.scroll_docs(4),
+			["<C-Space>"] = cmp.mapping.complete(),
+		}),
 		snippet = {
 			expand = function(args)
-				ls.lsp_expand(args.body)
+				require("luasnip").lsp_expand(args.body);
 			end
 		},
-		mapping = {
-			['<C-Space>'] = cmp.mapping.confirm({select = true}),
-			['<C-n>'] = cmp.mapping.select_next_item(),
-			['<C-p>'] = cmp.mapping.select_prev_item(),
-			['<Tab>'] = cmp_action.luasnip_jump_forward(),
-			['<S-Tab>'] = cmp_action.luasnip_jump_backward(),
-		},
-		preselect = "item",
-		completion = {
-			completeopt = "menu,menuone,noinsert"
-		},
-		sources = {
-			{name = "luasnip", keyword_length = 2, priority = 3},
-			{name = "nvim_lsp", keyword_length = 3, priority = 2, max_item_count = 5},
-			{name = "path", keyword_length = 3, priority = 2, max_item_count = 4},
-			-- {name = "buffer", keyword_length = 3, priority = 1, max_item_count = 2}
-		},
-		view = {
-			entries = 'custom'
-		},
-		enabled = function()
-			-- disable completion in comments
-			local context = require 'cmp.config.context'
-			-- keep command mode completion enabled when cursor is in a comment
-			if vim.api.nvim_get_mode().mode == 'c' then
-				return true
-			else
-				return not context.in_treesitter_capture("comment")
-					and not context.in_syntax_group("Comment")
-			end
-		end,
-	}
-
-    require("neodev").setup {}
-
-	local lspc = require("lspconfig")
-	lsp.ensure_installed({
-		"lua_ls", "clangd", "texlab"
+		sources = cmp.config.sources({
+			{name = "nvim_lsp"}, 
+			{name = "luasnip"},
+		})
 	})
-
-	local capabilities = require("cmp_nvim_lsp").default_capabilities();
-
-	lspc.lua_ls.setup {
-        capabilities = capabilities,
-        lsp.nvim_lua_ls(),
-    }
-	if SYSNAME_LINUX == SYSNAME then
-		lspc.clangd.setup {capabilities = capabilities}
-		lspc.texlab.setup {capabilities = capabilities}
-		lspc.arduino_language_server.setup {}
-	end
-
-	if SYSNAME_WINDOWS == SYSNAME then
-		lspc.matlab_ls.setup {
-			capabilities = capabilities,
-			single_file_support = true,
-			settings = {
-				matlab = {
-					indexWorkspace = true,
-					installPath = "C:/Program Files/MATLAB/R2024b",
-					matlabConnectionTiming = 'onStart',
-					telemetry = true,
-				},
-			},
-		}
-	end
-
-	lsp.setup()
-
 end
 
-local cf_tsp = function()
-	vim.keymap.set("n", "<leader>tsn", function() vim.cmd("TSNodeUnderCursor") end)
-end
 
--- run packer, loading configs
-local packer = require("packer")
-packer.startup( function(use)
+local rtps = {linux = "~/.vim", windows = "~/vimfiles"};
+vim.opt.runtimepath:append(rtps[SYSNAME]);
+vim.cmd("source ~/.vimrc");
+
+-- Command-mode command to edit the initfile (like UltiSnipsEdit)
+-- Helper
+local open_stdfile = function(stp, file)
+    return function() vim.cmd.edit(vim.fn.resolve(vim.fn.stdpath(stp) .. file)); end
+end
+vim.api.nvim_create_user_command("InitLuaEdit", open_stdfile("config", "/init.lua"), {nargs = 0});
+vim.api.nvim_create_user_command("SwpDirOpen", open_stdfile("state", "/swap"), {nargs = 0});
+vim.api.nvim_create_user_command("LuaSnipReload", cf_luasnip, {nargs = 0});
+
+require("packer").startup( function(use)
 	-- Packer
 	use "wbthomason/packer.nvim"
 
@@ -316,6 +205,7 @@ packer.startup( function(use)
 		tag = "*",
 		config = cf_surround
 	}
+
 	use {
 		"windwp/nvim-autopairs",
 		config = cf_autopairs
@@ -343,7 +233,6 @@ packer.startup( function(use)
 	-- Advanced language support
 	use {
 		"nvim-treesitter/nvim-treesitter",
-		{run = ":TSUpdate"}, -- execute every time the package is updated
 		config = cf_treesitter
 	}
 
@@ -361,24 +250,32 @@ packer.startup( function(use)
 	}
 
 	use {
-		"VonHeikemen/lsp-zero.nvim",
-		branch = "v2.x",
-		requires = {
-			-- LSP Support
-			{"neovim/nvim-lspconfig"},
-			{"williamboman/mason.nvim"},
-			{"williamboman/mason-lspconfig.nvim"},
-			--{"glebzlat/arduino-nvim"},
+		"williamboman/mason.nvim",
+		requires = "williamboman/mason-lspconfig.nvim",
+		config = function() require("mason").setup() end,
+	}
 
-			-- Autocompletion
-			{"L3MON4D3/LuaSnip"},
+	use {
+		"L3MON4D3/LuaSnip",
+		config = cf_luasnip,
+	}
+
+	use {
+		"neovim/nvim-lspconfig",
+		config = cf_lspconfig,
+	}
+
+	use {
+		"hrsh7th/nvim-cmp",
+		after = {"LuaSnip", "mason.nvim", "nvim-treesitter"},
+		requires = {
 			{"saadparwaiz1/cmp_luasnip"},
 			{"hrsh7th/nvim-cmp"},
 			{"hrsh7th/cmp-buffer"},
 			{"hrsh7th/cmp-path"},
 			{"hrsh7th/cmp-nvim-lsp"},
 		},
-		config = cf_lspzero
+		config = cf_cmp
 	}
 
 	use {
@@ -388,15 +285,4 @@ packer.startup( function(use)
     use {
         "theprimeagen/vim-be-good"
     }
-end)
-
-
-if SYSNAME_LINUX == SYSNAME then
-    vim.opt.runtimepath:append("~/.vim")
-end
-
-if SYSNAME_WINDOWS == SYSNAME then
-    vim.opt.runtimepath:append("~/vimfiles")
-end
-
-vim.cmd("source ~/.vimrc")
+end);

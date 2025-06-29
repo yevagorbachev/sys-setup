@@ -12,7 +12,7 @@ set scrolloff=100 " leave 10 lines up and down
 set tabstop=4 " 4 space tabs
 set shiftwidth=4 " 4 space tabs
 set textwidth=80
-set guifont=Consolas:h12 
+set guifont=Consolas:h16
 set backspace=indent,eol,start
 
 map <Tab> >>
