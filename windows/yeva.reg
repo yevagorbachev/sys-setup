@@ -1,24 +1,18 @@
 Windows Registry Editor Version 5.00
 
-"C:\\Program Files\\neovim-qt 0.2.19\\bin\\nvim-qt.exe"
-
+; open files with Neovim
 [HKEY_CLASSES_ROOT\*\shell\Neovim]
 @="Open with Neovim"
-"Icon"="C:\\Program Files\\neovim-qt 0.2.19\\bin\\nvim-qt.exe"
-
+"Icon"="nvim-qt"
 
 [HKEY_CLASSES_ROOT\*\shell\Neovim\command]
-@="C:\\Program Files\\neovim-qt 0.2.19\\bin\\nvim-qt.exe"
+@="nvim-qt"
 
-
+; open folders with Neovim
 [HKEY_CLASSES_ROOT\Folder\shell\Neovim]
 @="Open with Neovim"
-"Icon"="C:\\Program Files\\neovim-qt 0.2.19\\bin\\nvim-qt.exe"
-
+"Icon"="nvim-qt"
 
 [HKEY_CLASSES_ROOT\Folder\shell\Neovim\command]
-@="C:\\Program Files\\neovim-qt 0.2.19\\bin\\nvim-qt.exe"
+@="nvim-qt"
 
-
-[HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer]
-"DisableSearchBoxSuggestions"=dword:00000001
