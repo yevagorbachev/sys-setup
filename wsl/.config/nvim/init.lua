@@ -123,21 +123,35 @@ local cf_luasnip = function()
 	require("luasnip.loaders.from_lua").load({paths = snipdir})
 end
 
-matlab_root_dir = function(bufnr)
-    local matcher = function(name, path)
-        return name:match(".*%.prj") or (name == ".git");
-    end
-    return vim.fs.root(bufnr, matcher)
-end
 local cf_lspconfig = function()
+    require("mason").setup();
+
     if SYSNAME == "linux" then
+        require("mason-lspconfig").setup({
+            ensure_installed = {"clangd", "texlab", "lua-langauge-server"};
+            automatic_enable = false,
+        });
+
         vim.lsp.enable("lua-language-server");
         vim.lsp.enable("clangd");
         vim.lsp.enable("texlab");
     end
+
     if SYSNAME == "windows" then
-        vim.lsp.config("matlab-language-server", {
-			cmd = {"matlab-language-server", "--stdio"},
+        require("mason-lspconfig").setup({
+            ensure_installed = {"matlab_ls"},
+            automatic_enable = false,
+        });
+
+
+        local matlab_ls_path = vim.fn.exepath("matlab-language-server.cmd");
+
+        vim.lsp.config("matlab_ls", {
+			cmd = {
+                "cmd.exe", "/C", matlab_ls_path,
+                "--stdio", 
+                "--matlabInstallPath", "C:/Progra~1/MATLAB/R2024b";
+            },
 			filetypes = {'matlab'},
             single_file_support = true,
             root_dir = function(bufnr, on_dir)
@@ -150,14 +164,13 @@ local cf_lspconfig = function()
             settings = {
                 MATLAB = {
                     indexWorkspace = true,
-                    -- installPath = "\"C:/Program Files/MATLAB/R2024b\"",
-                    installPath = "C:/Program\\ Files/MATLAB/R2024b",
+                    installPath = "C:/Progra~1/MATLAB/R2024b",
                     matlabConnectionTiming = "onStart",
                     telemetry = true,
                 }
             }
         });
-        vim.lsp.enable("matlab-language-server");
+        vim.lsp.enable("matlab_ls");
     end
 end
 
@@ -250,18 +263,13 @@ require("packer").startup( function(use)
 	}
 
 	use {
-		"williamboman/mason.nvim",
-		requires = "williamboman/mason-lspconfig.nvim",
-		config = function() require("mason").setup() end,
-	}
-
-	use {
 		"L3MON4D3/LuaSnip",
 		config = cf_luasnip,
 	}
 
 	use {
 		"neovim/nvim-lspconfig",
+        requires = {"mason-org/mason.nvim", "mason-org/mason-lspconfig.nvim"},
 		config = cf_lspconfig,
 	}
 
