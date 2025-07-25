@@ -102,11 +102,20 @@ source $ZSH/oh-my-zsh.sh
 
 export PATH=$PATH:/usr/src/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi/bin
 export PATH=$PATH:~/.local/bin
+export PATH=$PATH:/usr/lib/zig
 export ZEPHYR_BASE=~/launch-fsw/zephyr
 
 . ~/.zsh_aliases
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+path=('/home/yeva/.juliaup/bin' $path)
+export PATH
+
+# <<< juliaup initialize <<<

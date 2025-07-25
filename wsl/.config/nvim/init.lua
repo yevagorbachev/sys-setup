@@ -128,13 +128,20 @@ local cf_lspconfig = function()
 
     if SYSNAME == "linux" then
         require("mason-lspconfig").setup({
-            ensure_installed = {"clangd", "texlab", "lua-langauge-server"};
+            ensure_installed = {"clangd", "texlab", "lua_ls", "zls"};
             automatic_enable = false,
         });
+
+
+		vim.lsp.config("zls", {
+			zig_exe_path = vim.fn.exepath("zig"),
+			zig_lib_path = "/usr/lib/zig"
+		})
 
         vim.lsp.enable("lua-language-server");
         vim.lsp.enable("clangd");
         vim.lsp.enable("texlab");
+        vim.lsp.enable("zls");
     end
 
     if SYSNAME == "windows" then
