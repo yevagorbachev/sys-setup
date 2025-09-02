@@ -49,22 +49,25 @@ nnoremap <leader>p "_dp
 nnoremap <leader>d :Ex<CR>
 nnoremap <leader><leader> za
 
-vnoremap <leader>y "+y
-vnoremap <leader>p "+P
-
+let g:timefmt = "%Y/%m/%d %H:%M"
 nnoremap <leader>* *:%s//
-
+nnoremap <leader>wi :let @d=strftime(g:timefmt)<Esc>"dPa
+nnoremap <leader>wa :let @d=strftime(g:timefmt)<Esc>"dpa
 vmap <C-f> S)i
 
+" netrw settings
 let g:netrw_bufsettings = "noma nomod nu rnu nobl nowrap ro"
+let g:netrw_list_hide = "slprj,resources,.svn,.git"
 
-let s:netrw_hide_ext = ["aux", "dvi", "fdb_latexmk", "fls", "log", "toc", "out"] 
-
-let g:netrw_list_hide = ""
+" TeX / docs / MATLAB
+let s:netrw_hide_ext = ["aux", "dvi", "fdb_latexmk", "fls", "log", "toc", "out", 
+            \ "pdf", "xlsx", "docx", "doc", 
+            \ "slx", "slxp", "slxc", "asv", "prj", "mlproj", "mlx"]  
 for s in s:netrw_hide_ext
-	let g:netrw_list_hide .= ".*\." . s . ","
+	let g:netrw_list_hide .= ",.*\." . s
 endfor
 
+" Plugins on
 filetype on
 filetype plugin on
 filetype indent on
@@ -72,6 +75,7 @@ syntax on
 
 packadd! matchit
 
+" TODO/NOTE/etc highlighting
 augroup todo
     au!
     au Syntax * syn match MyTodo /\v<(FIXME|NOTE|TODO|XXX):?/
@@ -79,3 +83,13 @@ augroup todo
 augroup END
 
 hi def link MyTodo Todo
+
+" presentation mode: biggen and lighten
+function! Present(...)
+    " size defaults to 16pt
+	let &l:guifont='Consolas:h'.get(a:, 1, 16)
+	set background=light
+endfunction
+
+" user commmand wrapper
+:command -nargs=? Present call Present(<args>)
