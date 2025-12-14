@@ -16,3 +16,7 @@ Windows Registry Editor Version 5.00
 [HKEY_CLASSES_ROOT\Folder\shell\Neovim\command]
 @="nvim-qt"
 
+; Shut up about Bing
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge]
+"HideFirstRunExperience"=dword:00000001
+"ShowReccomendationsEnabled"=dword:00000000
